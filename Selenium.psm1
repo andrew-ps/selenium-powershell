@@ -3,7 +3,16 @@
 [System.Reflection.Assembly]::LoadFrom("$PSScriptRoot\Selenium.WebDriverBackedSelenium.dll")
 
 function Start-SEChrome {
-    New-Object -TypeName "OpenQA.Selenium.Chrome.ChromeDriver"
+    param(
+    [Parameter(Mandatory=$false)]
+    [OpenQA.Selenium.Chrome.ChromeOptions]$Options
+    )
+    if($options -ne $null){
+        New-Object OpenQA.Selenium.Chrome.ChromeDriver($Options)
+    }
+    else{
+        New-Object -TypeName "OpenQA.Selenium.Chrome.ChromeDriver"
+    }
 }
 
 function Start-SEFirefox {
@@ -22,68 +31,265 @@ function Enter-SEUrl {
     $Driver.Navigate().GoToUrl($Url)
 }
 
+<#
+ .Synopsis
+  Gets a Selenium Web Element.
+
+ .Description
+  This command will allow you to find an element in your Selenium WebDriver
+  object so you can click, send keys, or check attributes on the element.
+  You can also specify a Selenium Element such as a division or table to
+  limit your search to a sub-element within that tag.
+  This returns an error if no element is found.
+
+ .Parameter Driver
+  Selenium WebDriver Object.
+
+ .Parameter Element
+  Selenium Element Object
+
+ .Parameter Name
+  Specify an element by name. This is case sensative.
+
+ .Parameter Id
+  Specify an element by id. This is case sensative.
+
+ .Parameter ClassName
+  Specify an element by class name. This is case sensative.
+
+ .Parameter LinkText
+  Specify an element by link text.
+
+ .Parameter TagName
+  Specify an element by tag name.
+
+ .Parameter PartialLinkText
+  Specify an element by partial link text.
+
+ .Parameter CssSelector
+  Specify an element by css selector. This is case sensative.
+
+ .Parameter XPath
+  Specify an element by xpath.
+
+ .Example
+  # Get the Reddit.com Search Bar Element and Input a String
+  # HTML on Search Bar : <input type="text" name="q" placeholder="search" tabindex="20">
+  $searchBar = Find-SEElement -Driver $driver -Name 'q'
+  $searchBar.SendKeys('PowerCLI Module')
+
+ .Example
+  # Get a Table Element and then Display the attributes of the Second Row
+  $table = Find-SEElement -Driver $driver -TagName 'table'
+  $tableRows = Find-SEElements -Element $table -TagName 'tr'
+  $tableRows[1]
+
+  .Notes
+#>
 function Find-SEElement {
     param(
-        [Parameter()]
-        $Driver,
-        [Parameter()]
-        $Element,
-        [Parameter(ParameterSetName = "ByName")]
+        [Parameter(ParameterSetName = "DriverByName")]
+        [Parameter(ParameterSetName = "DriverById")]
+        [Parameter(ParameterSetName = "DriverByClassName")]
+        [Parameter(ParameterSetName = "DriverByLinkText")]
+        [Parameter(ParameterSetName = "DriverByTagName")]
+        [Parameter(ParameterSetName = "DriverByPartialLinkText")]
+        [Parameter(ParameterSetName = "DriverByCssSelector")]
+        [Parameter(ParameterSetName = "DriverByXPath")]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        [Parameter(ParameterSetName = "ElementByName")]
+        [Parameter(ParameterSetName = "ElementById")]
+        [Parameter(ParameterSetName = "ElementByClassName")]
+        [Parameter(ParameterSetName = "ElementByLinkText")]
+        [Parameter(ParameterSetName = "ElementByTagName")]
+        [Parameter(ParameterSetName = "ElementByPartialLinkText")]
+        [Parameter(ParameterSetName = "ElementByCssSelector")]
+        [Parameter(ParameterSetName = "ElementByXPath")]
+        [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
+        [Parameter(ParameterSetName = "DriverByName")]
+        [Parameter(ParameterSetName = "ElementByName")]
         $Name,
-        [Parameter(ParameterSetName = "ById")]
+        [Parameter(ParameterSetName = "DriverById")]
+        [Parameter(ParameterSetName = "ElementById")]
         $Id,
-        [Parameter(ParameterSetName = "ByClassName")]
+        [Parameter(ParameterSetName = "DriverByClassName")]
+        [Parameter(ParameterSetName = "ElementByClassName")]
         $ClassName,
-        [Parameter(ParameterSetName = "ByLinkText")]
+        [Parameter(ParameterSetName = "DriverByLinkText")]
+        [Parameter(ParameterSetName = "ElementByLinkText")]
         $LinkText,
-        [Parameter(ParameterSetName = "ByTagName")]
-        $TagName)
+        [Parameter(ParameterSetName = "DriverByTagName")]
+        [Parameter(ParameterSetName = "ElementByTagName")]
+        $TagName,
+        [Parameter(ParameterSetName = "DriverByPartialLinkText")]
+        [Parameter(ParameterSetName = "ElementByPartialLinkText")]
+        $PartialLinkText,
+        [Parameter(ParameterSetName = "DriverByCssSelector")]
+        [Parameter(ParameterSetName = "ElementByCssSelector")]
+        $CssSelector,
+        [Parameter(ParameterSetName = "DriverByXPath")]
+        [Parameter(ParameterSetName = "ElementByXPath")]
+        $XPath
+        )
 
     Process {
 
-        if ($Driver -ne $null -and $Element -ne $null) {
-            throw "Driver and Element may not be specified together."
-        }
-        elseif ($Driver -ne $Null) {
+        if ($Driver -ne $Null) {
             $Target = $Driver
         }
         elseif ($Element -ne $Null) {
             $Target = $Element
         }
         else {
-            "Driver or element must be specified"
+            throw "Driver or element must be specified"
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "ByName") {
-            $Target.FindElements([OpenQA.Selenium.By]::Name($Name))
+        if ($PSCmdlet.ParameterSetName -match "ByName") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::Name($Name))
+            }
+            catch{
+                throw "No Element Found"
+            }
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "ById") {
-            $Target.FindElements([OpenQA.Selenium.By]::Id($Id))
+        if ($PSCmdlet.ParameterSetName -match "ById") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::Id($Id))
+            }
+            catch{
+                throw "No Element Found"
+            }
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "ByLinkText") {
-            $Target.FindElements([OpenQA.Selenium.By]::LinkText($LinkText))
+        if ($PSCmdlet.ParameterSetName -match "ByLinkText") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::LinkText($LinkText))
+            }
+            catch{
+                throw "No Element Found"
+            }
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "ByClassName") {
-            $Target.FindElements([OpenQA.Selenium.By]::ClassName($ClassName))
+        if ($PSCmdlet.ParameterSetName -match "ByClassName") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::ClassName($ClassName))
+            }
+            catch{
+                throw "No Element Found"
+            }
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "ByTagName") {
-            $Target.FindElements([OpenQA.Selenium.By]::TagName($TagName))
+        if ($PSCmdlet.ParameterSetName -match "ByTagName") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::TagName($TagName))
+            }
+            catch{
+                throw "No Element Found"
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -match "ByPartialLinkText") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::PartialLinkText($TagName))
+            }
+            catch{
+                throw "No Element Found"
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -match "ByCssSelector") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::CssSelector($TagName))
+            }
+            catch{
+                throw "No Element Found"
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -match "ByXPath") {
+            try{
+                $Target.FindElements([OpenQA.Selenium.By]::XPath($TagName))
+            }
+            catch{
+                throw "No Element Found"
+            }
         }
     }
 }
 
+<#
+ .Synopsis
+  Clicks a Selenium WebElement
+
+ .Description
+  This command will click on a Selenium Element
+
+ .Parameter Element
+  Selenium Element Object
+
+ .Example
+  # Login to Reddit.com
+  $username = Find-SEElement -Name 'user'
+  $password = Find-SEElement -Name 'passwd'
+  $submitBtn = Find-SEElement -ClassName 'btn'
+  Send-SEKeys -Element $username -Keys 'USERNAME'
+  Send-SEKeys -Element $password -Keys 'PASSWORD'
+  Invoke-SEClick -Element $submitBtn
+
+  .Example
+  # Login to Reddit.com using pipeline
+  Find-SEElement -Name 'user' | Send-SEKeys -Keys 'USERNAME'
+  Find-SEElement -Name 'passwd' | Send-SEKeys -Keys 'PASSWORD'
+  Find-SEElement -ClassName 'btn' | Invoke-SEClick
+
+  .Notes
+#>
 function Invoke-SEClick {
-    param([OpenQA.Selenium.IWebElement]$Element)
+    param(
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    [OpenQA.Selenium.IWebElement]$Element
+    )
 
     $Element.Click()
 }
 
+<#
+ .Synopsis
+  Sends keys to a Selenium WebElement
+
+ .Description
+  This command will send keys/input to a Selenium Element.
+
+ .Parameter Element
+  Selenium Element Object
+
+ .Parameter Keys
+  Specify the Keys to Send to the Element.
+
+ .Example
+  # Login to Reddit.com
+  $username = Find-SEElement -Name 'user'
+  $password = Find-SEElement -Name 'passwd'
+  $submitBtn = Find-SEElement -ClassName 'btn'
+  Send-SEKeys -Element $username -Keys 'USERNAME'
+  Send-SEKeys -Element $password -Keys 'PASSWORD'
+  Invoke-SEClick -Element $submitBtn
+
+  .Example
+  # Login to Reddit.com using pipeline
+  Find-SEElement -Name 'user' | Send-SEKeys -Keys 'USERNAME'
+  Find-SEElement -Name 'passwd' | Send-SEKeys -Keys 'PASSWORD'
+  Find-SEElement -ClassName 'btn' | Invoke-SEClick
+
+  .Notes
+#>
 function Send-SEKeys {
-    param([OpenQA.Selenium.IWebElement]$Element, [string]$Keys)
+    param(
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    [OpenQA.Selenium.IWebElement]$Element,
+    [string]$Keys
+    )
 
     $Element.SendKeys($Keys)
 }
@@ -108,6 +314,33 @@ function Set-SECookie {
     $Driver.Manage().Cookies.AddCookie($cookie)
 }
 
+<#
+ .Synopsis
+  Gets a Selenium Web Element Attribute.
+
+ .Description
+  This command will allow you to find the value of an attribute on your
+  Selenium Web Element.
+
+ .Parameter Element
+  Selenium Element Object
+
+ .Parameter Attribute
+  Specify the Attribute you want from the Element.
+
+ .Example
+  # Get the Reddit.com Search Bar Element and Input a String
+  # HTML EXAMPLE
+  $searchBar = Get-SEElement -Driver $driver -FindBy Name -Value 'q'
+  $searchBar.SendKeys('PowerCLI Module')
+
+ .Example
+  # Get a Table Element and then Find a SubElement in the Table
+  $table = Get-SEElement -Driver $driver -FindBy ## -Value ##
+  $rowTwo = Get-SEElement -Element $table -FindBy ## -Value ## 
+
+  .Notes
+#>
 function Get-SEElementAttribute {
     param(
         [Parameter(ValueFromPipeline=$true, Mandatory = $true)]
@@ -119,291 +352,4 @@ function Get-SEElementAttribute {
     Process {
         $Element.GetAttribute($Attribute)
     }
-}
-
-<#
- .Synopsis
-  Gets Multiple Selenium Web Elements.
-
- .Description
-  This command will allow you to find multiple elements in your Selenium WebDriver
-  object. It will also return a single element.
-
- .Parameter Driver
-  Selenium WebDriver Object.
-
- .Parameter Element
-  Selenium Element Object
-
- .Parameter FindBy
-  Specify the Method to Find the Selenium Element
-  Availble Types are : ClassName, CssSelector, Id, LinkText, Name, PartialLinkText, TagName, XPath
-  You will need to determine which method to use by what is unique to the element you are looking
-  for by inspecting it's HTML.
-
- .Parameter Value
-  Specify the Value for the FindBy Parameter. The Value is Case Sensative to what is in HTML.
-
- .Example
-  # Display a List of SubReddits Currently Visible on the Top Bar
-  $subRedditBar = Find-SEElement -Driver $driver -FindBy ClassName -Value 'sr-list'
-  $subReddits = Find-SEElements -Element $subRedditBar -FindBy ClassName -Value 'choice'
-  $subReddits | where {$_.Displayed -eq $true} | select -ExpandProperty text
-
- .Example
-  # Get a Table Element and then Get Each Row in a Table
-  $tables = Find-SEElement -Driver $driver -FindBy TagName -Value 'table'
-  $tableRows = Find-SEElements -Element $tables -FindBy TagName -Value 'tr'
-  $tableRows
-
-  .Notes
-#>
-function Find-SEElements {
-    [CmdletBinding(DefaultParameterSetName='Driver')]
-    param(
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-    [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Element')]
-    [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
-    [ValidateSet("ClassName","CssSelector","Id","LinkText","Name","PartialLinkText","TagName","XPath")]
-    [Parameter(Mandatory=$true)]
-    [string]$FindBy,
-    [Parameter(Mandatory=$true)]
-    [string]$Value
-    )
-    if($Driver){
-        try{
-            $webElements = $Driver."FindElementsBy$FindBy"($Value)
-        }
-        catch{
-            return $null
-        }
-    }
-    else{
-        try{
-            $webElements = $Element."FindElementsBy$FindBy"($Value)
-        }
-        catch{
-            return $null
-        }
-    }
-    return $webElements
-}
-<#
- .Synopsis
-  Gets a Selenium Web Element.
-
- .Description
-  This command will allow you to find an element in your Selenium WebDriver
-  object so you can click, send keys, or check attributes on the element.
-  This returns a null value if no ELement is found.
-
- .Parameter Driver
-  Selenium WebDriver Object.
-
- .Parameter Element
-  Selenium Element Object
-
- .Parameter FindBy
-  Specify the Method to Find the Selenium Element
-  Availble Types are : ClassName, CssSelector, Id, LinkText, Name, PartialLinkText, TagName, XPath
-  You will need to determine which method to use by what is unique to the element you are looking for by inspecting it's HTML
-
- .Parameter Value
-  Specify the Value for the FindBy Parameter. The Value is Case Sensative to what is in HTML.
-
- .Example
-  # Get the Reddit.com Search Bar Element and Input a String
-  # HTML on Search Bar : <input type="text" name="q" placeholder="search" tabindex="20">
-  $searchBar = Find-SEElement -Driver $driver -FindBy Name -Value 'q'
-  $searchBar.SendKeys('PowerCLI Module')
-
- .Example
-  # Get a Table Element and then Display the Second Row
-  $table = Find-SEElement -Driver $driver -FindBy TagName -Value 'table'
-  $tableRows = Find-SEElements -Element $table -FindBy TagName -Value 'tr'
-  $tableRows[1]
-
-  .Notes
-#>
-function Find-SEElement {
-    [CmdletBinding(DefaultParameterSetName='Driver')]
-    param(
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-    [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Element')]
-    [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
-    [ValidateSet("ClassName","CssSelector","Id","LinkText","Name","PartialLinkText","TagName","XPath")]
-    [Parameter(Mandatory=$true)]
-    [string]$FindBy,
-    [Parameter(Mandatory=$true)]
-    [string]$Value
-    )
-    if($Driver){
-        try{
-            $webElement = $Driver."FindElementsBy$FindBy"($Value)
-            if($webElement.count -eq 1){
-                $webElement = $Driver."FindElementBy$FindBy"($Value)
-            }
-            else{
-                throw "$($webElement.count) Elements Found Try to Narrow Search or Use Get-SEElements Cmdlet"
-            }
-        }
-        catch{
-            return $null
-        }
-    }
-    else{
-        try{
-            $webElement = $Element."FindElementsBy$FindBy"($Value)
-            if($webElement.count -eq 1){
-                $webElement = $Element."FindElementBy$FindBy"($Value)
-            }
-            else{
-                throw "$($webElement.count) Elements Found Try to Narrow Search or Use Get-SEElements Cmdlet"
-            }
-        }
-        catch{
-            return $null
-        }
-    }
-    return $webElement
-}
-<#
- .Synopsis
-  Clicks a Selenium WebElement
-
- .Description
-  This command will select or click on a Selenium Element
-
- .Parameter Driver
-  Selenium WebDriver Object.
-
- .Parameter Element
-  Selenium Element Object
-
- .Parameter FindBy
-  Specify the Method to Find the Selenium Element
-  Availble Types are : ClassName, CssSelector, Id, LinkText, Name, PartialLinkText, TagName, XPath
-  You will need to determine which method to use by what is unique to the element you are looking for by inspecting it's HTML
-  This site may help you figure out inspecting elements a bit : https://www.lifewire.com/get-inspect-element-tool-for-browser-756549
-
- .Parameter Value
-  Specify the Value for the FindBy Parameter. This is Case Sensative.
-
- .Example
-  # Switch to "New" Tab on Reddit.com
-  Select-SEElement -Driver $driver -FindBy LinkText -Value 'new'
-
- .Example
-  # Login to Reddit.com
-  Write-SEElement -Driver $driver -FindBy Name -Value 'user' -Text 'USERNAME'
-  Write-SEElement -Driver $driver -FindBy Name -Value 'passwd' -Text 'PASSWORD'
-  Select-SEElement -Driver $driver -FindBy ClassName -Value 'btn'
-
-  .Notes
-#>
-function Select-SEElement {
-    [CmdletBinding(DefaultParameterSetName='Driver')]
-    param(
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Element')]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Pipeline',ValueFromPipeline=$true)]
-        [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
-    [ValidateSet("ClassName","CssSelector","Id","LinkText","Name","PartialLinkText","TagName","XPath")]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-        [string]$FindBy,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-        [string]$Value
-    )
-    if($Driver){
-        try{
-            $webElement = $Driver."FindElementsBy$FindBy"($Value)
-            if($webElement.count -eq 1){
-                $webElement = $Driver."FindElementBy$FindBy"($Value)
-            }
-            else{
-                throw 'Multiple elements found'
-            }
-        }
-        catch{
-            throw 'Element not found'
-        }
-    }
-    else{
-        $webElement = $Element
-    }
-    $webElement.Click()
-}
-<#
- .Synopsis
-  Sends Input to a Selenium Element.
-
- .Description
-  This command will allow you to send input to any form or textbox.
-
- .Parameter Driver
-  Selenium WebDriver Object.
-
- .Parameter Element
-  Selenium Element Object
-
- .Parameter FindBy
-  Specify the Method to Find the Selenium Element
-  Availble Types are : ClassName, CssSelector, Id, LinkText, Name, PartialLinkText, TagName, XPath
-  You will need to determine which method to use by what is unique to the element you are looking for by inspecting it's HTML
-  This site may help you figure out inspecting elements a bit : https://www.lifewire.com/get-inspect-element-tool-for-browser-756549
-
- .Parameter Value
-  Specify the Value for the FindBy Parameter. This is Case Sensative.
-
- .Parameter Text
-  Specify the Value to be Inputted into the Element.
-
- .Example
-  # Get the Reddit.com Search Bar Element and Input a String
-  # HTML : <input type="text" name="q" placeholder="search" tabindex="20">
-  Get-SEElement -Driver $driver -FindBy Name -Value 'q' | Write-SEElement -Text 'PowerCLI Module'
-
- .Example
-  # Login to Reddit.com
-  Write-SEElement -Driver $driver -FindBy Name -Value 'user' -Text 'USERNAME'
-  Write-SEElement -Driver $driver -FindBy Name -Value 'passwd' -Text 'PASSWORD'
-  Select-SEElement -Driver $driver -FindBy ClassName -Value 'btn'
-
-  .Notes
-#>
-function Write-SEElement {
-    [CmdletBinding(DefaultParameterSetName='Driver')]
-    param(
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-    [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Element')]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Pipeline',ValueFromPipeline=$true)]
-    [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
-    [ValidateSet("ClassName","CssSelector","Id","LinkText","Name","PartialLinkText","TagName","XPath")]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-    [string]$FindBy,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-    [string]$Value,
-    [Parameter(Mandatory=$true, ParameterSetName = 'Driver')]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Pipeline',Position=0)]
-    [string]$Text
-    )
-    if($Driver){
-        try{
-            $webElement = $Driver."FindElementsBy$FindBy"($Value)
-            if($webElement.count -eq 1){
-                $webElement = $Driver."FindElementBy$FindBy"($Value)
-            }
-        }
-        catch{
-            return $false
-        }
-    }
-    else{
-        $webElement = $Element
-    }
-    $webElement.SendKeys("$Text")
 }
