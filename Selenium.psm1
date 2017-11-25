@@ -2,31 +2,122 @@
 [System.Reflection.Assembly]::LoadFrom("$PSScriptRoot\WebDriver.Support.dll")
 [System.Reflection.Assembly]::LoadFrom("$PSScriptRoot\Selenium.WebDriverBackedSelenium.dll")
 
+<#
+ .Synopsis
+  Starts a New Chrome Driver.
+
+ .Description
+  This command will start a new Chrome Driver. You can also specify Chrome options,
+  and a starting URL if desired.
+
+ .Parameter URL
+  URL to navigate to. Must have a http://, https://, ftp:// etc.
+
+ .Parameter Options
+  Specify Chrome Driver Options. List of options available here :
+  https://peter.sh/experiments/chromium-command-line-switches/
+
+ .Example
+  # Create new driver with Chrome Options.
+  $driverOptions = New-Object OpenQA.Selenium.Chrome.ChromeOptions
+  # Launches Driver in Full Screen Kiosk Mode, and disables 'Chrome is being controlled by automated test software'
+  $driverOptions.AddArguments("start-fullscreen", "kiosk", "disable-infobars")
+  # This should keep the browser running after the driver closes but does not seem to be working at this time
+  $driverOptions.LeaveBrowserRunning = $true
+  # This would disable the prompt to save credentials on login forms
+  $driverOptions.AddUserProfilePreference("credentials_enable_service", $false)
+  $driver = Start-SEChrome -Url 'http://google.com' -Options $driverOptions
+
+  .Notes
+#>
 function Start-SEChrome {
     param(
-    [Parameter(Mandatory=$false)]
-    [OpenQA.Selenium.Chrome.ChromeOptions]$Options
+        [Parameter(Mandatory=$false)]
+        $Url,
+        [Parameter(Mandatory=$false)]
+        [OpenQA.Selenium.Chrome.ChromeOptions]$Options
     )
     if($options -ne $null){
-        New-Object OpenQA.Selenium.Chrome.ChromeDriver($Options)
+        $driver = New-Object OpenQA.Selenium.Chrome.ChromeDriver($Options)
     }
     else{
-        New-Object -TypeName "OpenQA.Selenium.Chrome.ChromeDriver"
+        $driver = New-Object -TypeName "OpenQA.Selenium.Chrome.ChromeDriver"
     }
+    if($Url){
+        $driver.Navigate().GoToUrl($Url)
+    }
+    return $driver
 }
 
+<#
+ .Synopsis
+  Starts a New Firefox Driver.
+
+ .Description
+  This command will start a new Firefox Driver.
+
+ .Example
+  # Starts new Firefox Driver
+  $driver = Start-SEFirefox
+
+  .Notes
+#>
 function Start-SEFirefox {
     New-Object -TypeName "OpenQA.Selenium.Firefox.FirefoxDriver"
 }
 
+<#
+ .Synopsis
+  Stops a Selenium Driver.
+
+ .Description
+  This command will dispose of the Selenium Driver and close out the browser.
+  # You can keep the browser open by specifying ####
+
+ .Parameter Driver
+  Selenium WebDriver Object.
+
+ .Example
+  # Open a new driver and close it back out
+  $driver = Start-SEChrome -Url 'http://google.com' -Options $driverOptions
+  Stop-SEDriver -Driver $driver
+
+  .Notes
+#>
 function Stop-SEDriver {
     param($Driver)
 
     $Driver.Dispose()
 }
 
+<#
+ .Synopsis
+  Goes to a specified URL.
+
+ .Description
+  This command will go to the URL specified. You need to put in http://, https://,
+  ftp:// etc.
+
+ .Parameter Driver
+  Selenium WebDriver Object.
+
+ .Parameter URL
+  URL to navigate to. Must have a http://, https://, ftp:// etc. address.
+
+ .Example
+  # Create new driver and navigate to a website.
+  $driver = Start-SEChrome
+  Enter-SEUrl -Driver $driver -Url 'http://google.com'
+
+  .Notes
+#>
 function Enter-SEUrl {
-    param($Driver, $Url)
+    param(
+        [Parameter(Position=0,Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        [Parameter(Mandatory=$true)]
+        $Url
+    )
 
     $Driver.Navigate().GoToUrl($Url)
 }
@@ -46,7 +137,7 @@ function Enter-SEUrl {
   Selenium WebDriver Object.
 
  .Parameter Element
-  Selenium Element Object
+  Selenium Element Object.
 
  .Parameter Name
   Specify an element by name. This is case sensative.
@@ -88,23 +179,23 @@ function Enter-SEUrl {
 #>
 function Find-SEElement {
     param(
-        [Parameter(ParameterSetName = "DriverByName")]
-        [Parameter(ParameterSetName = "DriverById")]
-        [Parameter(ParameterSetName = "DriverByClassName")]
-        [Parameter(ParameterSetName = "DriverByLinkText")]
-        [Parameter(ParameterSetName = "DriverByTagName")]
-        [Parameter(ParameterSetName = "DriverByPartialLinkText")]
-        [Parameter(ParameterSetName = "DriverByCssSelector")]
-        [Parameter(ParameterSetName = "DriverByXPath")]
+        [Parameter(Position=0, ParameterSetName = "DriverByName")]
+        [Parameter(Position=0, ParameterSetName = "DriverById")]
+        [Parameter(Position=0, ParameterSetName = "DriverByClassName")]
+        [Parameter(Position=0, ParameterSetName = "DriverByLinkText")]
+        [Parameter(Position=0, ParameterSetName = "DriverByTagName")]
+        [Parameter(Position=0, ParameterSetName = "DriverByPartialLinkText")]
+        [Parameter(Position=0, ParameterSetName = "DriverByCssSelector")]
+        [Parameter(Position=0, ParameterSetName = "DriverByXPath")]
         [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
-        [Parameter(ParameterSetName = "ElementByName")]
-        [Parameter(ParameterSetName = "ElementById")]
-        [Parameter(ParameterSetName = "ElementByClassName")]
-        [Parameter(ParameterSetName = "ElementByLinkText")]
-        [Parameter(ParameterSetName = "ElementByTagName")]
-        [Parameter(ParameterSetName = "ElementByPartialLinkText")]
-        [Parameter(ParameterSetName = "ElementByCssSelector")]
-        [Parameter(ParameterSetName = "ElementByXPath")]
+        [Parameter(Position=0, ParameterSetName = "ElementByName")]
+        [Parameter(Position=0, ParameterSetName = "ElementById")]
+        [Parameter(Position=0, ParameterSetName = "ElementByClassName")]
+        [Parameter(Position=0, ParameterSetName = "ElementByLinkText")]
+        [Parameter(Position=0, ParameterSetName = "ElementByTagName")]
+        [Parameter(Position=0, ParameterSetName = "ElementByPartialLinkText")]
+        [Parameter(Position=0, ParameterSetName = "ElementByCssSelector")]
+        [Parameter(Position=0, ParameterSetName = "ElementByXPath")]
         [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
         [Parameter(ParameterSetName = "DriverByName")]
         [Parameter(ParameterSetName = "ElementByName")]
@@ -164,10 +255,16 @@ function Find-SEElement {
 
         if ($PSCmdlet.ParameterSetName -match "ByLinkText") {
             try{
-                $Target.FindElements([OpenQA.Selenium.By]::LinkText($LinkText))
+                $webElement = $Target.FindElements([OpenQA.Selenium.By]::LinkText($LinkText))
             }
             catch{
                 throw "No Element Found"
+            }
+            if($webElement.Count -eq 0){
+                throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
@@ -247,7 +344,7 @@ function Find-SEElement {
 #>
 function Invoke-SEClick {
     param(
-    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
     [OpenQA.Selenium.IWebElement]$Element
     )
 
@@ -266,6 +363,9 @@ function Invoke-SEClick {
 
  .Parameter Keys
   Specify the Keys to Send to the Element.
+
+ .Parameter SubmitForm
+  Attempts to Submit Form if its a Form Element.
 
  .Example
   # Login to Reddit.com
@@ -286,12 +386,22 @@ function Invoke-SEClick {
 #>
 function Send-SEKeys {
     param(
-    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
     [OpenQA.Selenium.IWebElement]$Element,
-    [string]$Keys
+    [Parameter(Mandatory=$true)]
+    [string]$Keys,
+    [switch]$SubmitForm
     )
 
     $Element.SendKeys($Keys)
+    if($SubmitForm -eq $true){
+        try{
+            $Element.Submit()
+        }
+        catch{
+            throw "Cannot submit, this is not a form."
+        }
+    }
 }
 
 function Get-SECookie {
@@ -328,22 +438,11 @@ function Set-SECookie {
  .Parameter Attribute
   Specify the Attribute you want from the Element.
 
- .Example
-  # Get the Reddit.com Search Bar Element and Input a String
-  # HTML EXAMPLE
-  $searchBar = Get-SEElement -Driver $driver -FindBy Name -Value 'q'
-  $searchBar.SendKeys('PowerCLI Module')
-
- .Example
-  # Get a Table Element and then Find a SubElement in the Table
-  $table = Get-SEElement -Driver $driver -FindBy ## -Value ##
-  $rowTwo = Get-SEElement -Element $table -FindBy ## -Value ## 
-
   .Notes
 #>
 function Get-SEElementAttribute {
     param(
-        [Parameter(ValueFromPipeline=$true, Mandatory = $true)]
+        [Parameter(Position=0,ValueFromPipeline=$true,Mandatory = $true)]
         [OpenQA.Selenium.IWebElement]$Element,
         [Parameter(Mandatory=$true)]
         [string]$Attribute
