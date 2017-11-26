@@ -289,30 +289,27 @@ function Find-SEElement {
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByName") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::Name($Name))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::Name($Name))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
         if ($PSCmdlet.ParameterSetName -match "ById") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::Id($Id))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::Id($Id))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByLinkText") {
-            try{
-                $webElement = $Target.FindElements([OpenQA.Selenium.By]::LinkText($LinkText))
-            }
-            catch{
-                throw "No Element Found"
-            }
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::LinkText($LinkText))
             if($webElement.Count -eq 0){
                 throw "No Element Found"
             }
@@ -322,47 +319,52 @@ function Find-SEElement {
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByClassName") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::ClassName($ClassName))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::ClassName($ClassName))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByTagName") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::TagName($TagName))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::TagName($TagName))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByPartialLinkText") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::PartialLinkText($TagName))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::PartialLinkText($PartialLinkText))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByCssSelector") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::CssSelector($TagName))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::CssSelector($CssSelector))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
 
         if ($PSCmdlet.ParameterSetName -match "ByXPath") {
-            try{
-                $Target.FindElements([OpenQA.Selenium.By]::XPath($TagName))
-            }
-            catch{
+            $webElement = $Target.FindElements([OpenQA.Selenium.By]::XPath($XPath))
+            if($webElement.Count -eq 0){
                 throw "No Element Found"
+            }
+            else{
+                return $webElement
             }
         }
     }
@@ -380,18 +382,18 @@ function Find-SEElement {
 
  .Example
   # Login to Reddit.com
-  $username = Find-SEElement -Name 'user'
-  $password = Find-SEElement -Name 'passwd'
-  $submitBtn = Find-SEElement -ClassName 'btn'
+  $username = Find-SEElement -Driver $driver -Name 'user'
+  $password = Find-SEElement -Driver $driver -Name 'passwd'
+  $submitBtn = Find-SEElement -Driver $driver -ClassName 'btn'
   Send-SEKeys -Element $username -Keys 'USERNAME'
   Send-SEKeys -Element $password -Keys 'PASSWORD'
   Invoke-SEClick -Element $submitBtn
 
   .Example
   # Login to Reddit.com using pipeline
-  Find-SEElement -Name 'user' | Send-SEKeys -Keys 'USERNAME'
-  Find-SEElement -Name 'passwd' | Send-SEKeys -Keys 'PASSWORD'
-  Find-SEElement -ClassName 'btn' | Invoke-SEClick
+  Find-SEElement -Driver $driver -Name 'user' | Send-SEKeys -Keys 'USERNAME'
+  Find-SEElement -Driver $driver -Name 'passwd' | Send-SEKeys -Keys 'PASSWORD'
+  Find-SEElement -Driver $driver -ClassName 'btn' | Invoke-SEClick
 
   .Notes
 #>
@@ -422,18 +424,18 @@ function Invoke-SEClick {
 
  .Example
   # Login to Reddit.com
-  $username = Find-SEElement -Name 'user'
-  $password = Find-SEElement -Name 'passwd'
-  $submitBtn = Find-SEElement -ClassName 'btn'
+  $username = Find-SEElement -Driver $driver -Name 'user'
+  $password = Find-SEElement -Driver $driver -Name 'passwd'
+  $submitBtn = Find-SEElement -Driver $driver -ClassName 'btn'
   Send-SEKeys -Element $username -Keys 'USERNAME'
   Send-SEKeys -Element $password -Keys 'PASSWORD'
   Invoke-SEClick -Element $submitBtn
 
   .Example
   # Login to Reddit.com using pipeline
-  Find-SEElement -Name 'user' | Send-SEKeys -Keys 'USERNAME'
-  Find-SEElement -Name 'passwd' | Send-SEKeys -Keys 'PASSWORD'
-  Find-SEElement -ClassName 'btn' | Invoke-SEClick
+  Find-SEElement -Driver $driver -Name 'user' | Send-SEKeys -Keys 'USERNAME'
+  Find-SEElement -Driver $driver -Name 'passwd' | Send-SEKeys -Keys 'PASSWORD'
+  Find-SEElement -Driver $driver -ClassName 'btn' | Invoke-SEClick
 
   .Notes
 #>
@@ -503,5 +505,119 @@ function Get-SEElementAttribute {
 
     Process {
         $Element.GetAttribute($Attribute)
+    }
+}
+
+<#
+ .Synopsis
+  Invokes a Selenium Wait for an Element to Exist
+
+ .Description
+  This command will wait for an element to exist for the specified amount of
+  seconds or 5 seconds by default. This works just like Find-SEElement but you
+  are specifying an element that should only exists after the previous action
+  is completed. This is useful when invoking a javascript element with a click
+  or submit where it might not wait for the action to complete before moving
+  onto the next command causing unexpected automation failures.
+
+ .Parameter Driver
+  Selenium WebDriver Object.
+
+ .Parameter Name
+  Specify an element by name. This is case sensative.
+
+ .Parameter Id
+  Specify an element by id. This is case sensative.
+
+ .Parameter ClassName
+  Specify an element by class name. This is case sensative.
+
+ .Parameter LinkText
+  Specify an element by link text.
+
+ .Parameter TagName
+  Specify an element by tag name.
+
+ .Parameter PartialLinkText
+  Specify an element by partial link text.
+
+ .Parameter CssSelector
+  Specify an element by css selector. This is case sensative.
+
+ .Parameter XPath
+  Specify an element by xpath.
+
+ .Parameter Seconds
+  Specify the amount of seconds to wait.
+
+ .Example
+  # Invoke the Selenium Wait Cmdlet
+  Invoke-SEWait -Driver $driver -ClassName 'userkarma' -Seconds 10
+
+  .Notes
+#>
+function Invoke-SEWait {
+    param(
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByName")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ById")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByClassName")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByLinkText")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByTagName")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByPartialLinkText")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByCssSelector")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "ByXPath")]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByName")]
+        $Name,
+        [Parameter(Mandatory=$true, ParameterSetName = "ById")]
+        $Id,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByClassName")]
+        $ClassName,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByLinkText")]
+        $LinkText,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByTagName")]
+        $TagName,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByPartialLinkText")]
+        $PartialLinkText,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByCssSelector")]
+        $CssSelector,
+        [Parameter(Mandatory=$true, ParameterSetName = "ByXPath")]
+        $XPath,
+        [int]$Seconds = 5
+    )
+    Process {
+        $wait = [OpenQA.Selenium.Support.UI.WebDriverWait]::new($Driver,$Seconds)
+
+        if ($PSCmdlet.ParameterSetName -eq "ByName") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::Name($Name)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ById") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::Id($Id)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ByLinkText") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::LinkText($LinkText)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ByClassName") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::ClassName($ClassName)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ByTagName") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::TagName($TagName)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ByPartialLinkText") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::PartialLinkText($PartialLinkText)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ByCssSelector") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::CssSelector($CssSelector)))
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq "ByXPath") {
+            $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::XPath($XPath)))
+        }
     }
 }
