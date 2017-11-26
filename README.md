@@ -54,7 +54,7 @@ Find-SEElement -Driver $Driver -Name 'q' | Send-SEKeys -Keys 'Test Search' -Subm
 - Gecko Driver : 0.19.1
 
 ## Notes
-There is a cmdlet for the Internet Explorer driver but it has not tested due to all the prerequisites required before using. The prerequisites can be found [here](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver#required-configuration) and the driver can be found on the same page as well.
+There is a cmdlet for the Internet Explorer driver but it has not been tested due to all the prerequisites required before using. The prerequisites can be found [here](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver#required-configuration) and the driver can be found on the same page as well.
 
 # Using Selenium Without this Module
 Incase you are looking to do things not available in this module or just want to see how to use Selenium without this module here is the same exact sample as above without this module's cmdlets.
