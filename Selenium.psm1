@@ -51,6 +51,31 @@ function Start-SEChrome {
 
 <#
  .Synopsis
+  Starts a New Edge Driver.
+
+ .Description
+  This command will start a new Microsoft Edge Driver.
+
+ .Example
+  # Starts new Edge Driver
+  $driver = Start-SEMicrosoftEdge
+
+  .Notes
+#>
+function Start-SEMicrosoftEdge {
+    param(
+        [Parameter(Mandatory=$false)]
+        $Url
+    )
+    $driver = New-Object -TypeName "OpenQA.Selenium.Edge.EdgeDriver"
+    if($Url){
+        $driver.Navigate().GoToUrl($Url)
+    }
+    return $driver
+}
+
+<#
+ .Synopsis
   Starts a New Firefox Driver.
 
  .Description
@@ -63,7 +88,35 @@ function Start-SEChrome {
   .Notes
 #>
 function Start-SEFirefox {
-    New-Object -TypeName "OpenQA.Selenium.Firefox.FirefoxDriver"
+    param(
+        [Parameter(Mandatory=$false)]
+        $Url
+    )
+    $driver = New-Object -TypeName "OpenQA.Selenium.Firefox.FirefoxDriver"
+    if($Url){
+        $driver.Navigate().GoToUrl($Url)
+    }
+    return $driver
+}
+
+<#
+ .Synopsis
+  Starts a New IE Driver.
+
+ .Description
+  This command will start a new Internet Explorer Driver.
+
+ .Example
+  # Starts new IE Driver
+  $driver = Start-SEInternetExplorer
+
+  .Notes
+#>
+function Start-SEInternetExplorer {
+    $message = 'Internet Explorer Driver has not been Tested with this Module.'
+    Write-Warning -Message $message
+    $driver = New-Object -TypeName "OpenQA.Selenium.IE.InternetExplorerDriver"
+    return $driver
 }
 
 <#
