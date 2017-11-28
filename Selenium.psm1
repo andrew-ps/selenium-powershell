@@ -510,6 +510,46 @@ function Get-SEElementAttribute {
 
 <#
  .Synopsis
+  Sets a Selenium Web Element Attribute.
+
+ .Description
+  This command will allow you to set the value of an attribute on your
+  Selenium Web Element.
+
+ .Parameter Element
+  Selenium Element Object
+
+ .Parameter Attribute
+  Specify the Attribute you want to set on the Element. For instance :
+  'text', 'style.border', 'hidden'
+
+ .Parameter Value
+  Specify the Value you want to set the Attribute to.
+  Note, To unhide an element specify $null like such :
+  Set-SEElementAttribute -Element $element -Attribute 'hidden' -Value $null
+
+ .Example
+  # Unhide an element and change the border style
+  Set-SEElementAttribute -Element $element -Attribute 'hidden' -Value $null
+  Set-SEElementAttribute -Element $element -Attribute 'style.border' -Value '1px solid blue'
+
+  .Notes
+#>
+function Set-SEElementAttribute{
+    Param(
+        [Parameter(Position=0, Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebElement]$Element,
+        [Parameter(Mandatory=$true)]
+        $Attribute,
+        [Parameter(Mandatory=$true)]
+        $Value
+    )
+    $driver = $Element.WrappedDriver
+    $driver.ExecuteScript("arguments[0].$Attribute='$Value'", $Element)
+}
+
+<#
+ .Synopsis
   Invokes a Selenium Wait for an Element to Exist
 
  .Description
@@ -620,4 +660,108 @@ function Invoke-SEWait {
             $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::XPath($XPath)))
         }
     }
+}
+
+<#
+ .Synopsis
+  Finds All Input Elements in Selenium Driver Object.
+
+ .Description
+  This command will allow you to find all input elements within your driver.
+  By default it hides all hidden input types. The Filter parameter is not
+  a scriptblock filter.
+
+ .Parameter Driver
+  Selenium WebDriver Object.
+
+ .Parameter Filter
+  Specify an Input Element Type (Password, Text, etc.)
+
+ .Parameter IncludeHidden
+  Switch Parameter to Include Hidden Input Fields. Disabled by Default.
+
+ .Example
+  # Finds all textbox inputs on a webpage
+  $textBoxes = Find-SEInputField -Driver $driver -Filter 'text'
+  $textBoxes
+
+  .Notes
+#>
+function Find-SEInputField{
+    Param(
+        [Parameter(Position=0, Mandatory=$true)]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        [Parameter(Mandatory=$true)]
+        [string]$Filter,
+        [switch]$IncludeHidden
+    )
+
+    if($IncludeHidden -eq $true){
+        $inputFields = $Driver.FindElementsByTagName('input')
+    }
+    else{
+        $inputFields = $Driver.FindElementsByTagName('input')
+        $inputFields = $inputFields | where {(Get-SEElementAttribute -Element $_ -Attribute Type) -ne 'hidden'}
+    }
+    if($Filter){
+        $inputFields = $inputFields | where {(Get-SEElementAttribute -Element $_ -Attribute Type) -eq $Filter}
+    }
+    return $inputFields
+}
+
+<#
+ .Synopsis
+  Finds All Dropdown Elements in Selenium Driver Object.
+
+ .Description
+  This command will allow you to find all dropdown elements within your driver.
+  This will only find basic dropdowns that utilize the Select and Option HTML
+  tags. Use the -ReturnOptions switch to return all the dropbox options. Use
+  the -ReturnValues switch to return the text value of each dropbox option.
+
+ .Parameter Driver
+  Selenium WebDriver Object.
+
+ .Parameter ReturnOption
+  Switch Parameter to return the dropdown option elements instead of the
+  dropdown elements.
+
+ .Parameter ReturnValues
+  Switch Parameter to return the dropdown option element's text values.
+
+ .Example
+  # Returns all dropbox text values
+  Find-SEDropDown -Driver $driver -ReturnValues
+
+  .Notes
+#>
+function Find-SEDropDown{
+    Param(
+        [Parameter(Mandatory=$true, ParameterSetName = "Base")]
+        [Parameter(Mandatory=$true, ParameterSetName = "Options")]
+        [Parameter(Mandatory=$true, ParameterSetName = "Values")]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        [Parameter(Mandatory=$true,ParameterSetName = "Options")]
+        [switch]$ReturnOptions,
+        [Parameter(Mandatory=$true,ParameterSetName = "Values")]
+        [switch]$ReturnValues
+    )
+
+    if($ReturnValues -eq $true){
+        $dropdowns = $Driver.FindElementsByTagName('select')
+        $values = New-Object System.Management.Automation.PSObject
+        $i = 0
+        foreach($dropdown in $dropdowns){
+            $i ++
+            $value = $dropdown.FindElementsByTagName("option").Text
+            Add-Member -InputObject $values -MemberType NoteProperty -Name "DropBox$i" -Value $value
+        }
+        return $values
+    }
+    if($ReturnOptions -eq $true){
+        $options = $Driver.FindElementsByTagName('option')
+        return $options
+    }
+    $dropdowns = $Driver.FindElementsByTagName('select')
+    return $dropdowns
 }
