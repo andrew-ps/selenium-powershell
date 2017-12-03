@@ -765,3 +765,79 @@ function Find-SEDropDown{
     $dropdowns = $Driver.FindElementsByTagName('select')
     return $dropdowns
 }
+
+<#
+ .Synopsis
+  Gets a Screenshot of Current Driver State
+
+ .Description
+  This command will take a screenshot of the current driver and save it to
+  the path specified or as a MemoryStream so it can be used in an email
+  attachment.
+
+ .Parameter Driver
+  Selenium Driver Object
+
+ .Parameter Path
+  Specify the Full Path to Save the screenshot to.
+
+ .Parameter Format
+  Specify the Image Format to save the file or stream as. Png format is default.
+
+ .Parameter AsMemoryStream
+  Use this switch to get the screenshot as a MemoryStream object which can be used
+  to send an email attachment.
+
+ .Example
+   # This example gets a screenshot and saves it at the specified path
+   Get-SEScreenshot -Driver $driver -Path .\Documents\myScreenshot.png
+
+ .Example
+   # This example gets a screenshot and sends it as an email attachment
+   $ssStream = Get-SEScreenshot $driver -AsMemoryStream -Format bmp
+   $attachMe = [System.Net.Mail.Attachment]::new($ssStream,'myScreenshot.bmp')
+   $message = [System.Net.Mail.MailMessage]::new('example@myorg.com','example@myorg.com')
+   $message.Attachments.Add($attachMe)
+   $smtp = [System.Net.Mail.SmtpClient]::new()
+   $smtp.Host = 'smtp.office365.com'
+   $username = 'example@myorg.com'
+   $password = 'Password'
+   $smtp.Credentials = [System.Net.NetworkCredential]::new($username,$password)
+   $smtp.Port = 587
+   $smtp.EnableSsl = $true
+   $smtp.Send($message)
+
+  .Notes
+#>
+function Get-SEScreenshot {
+    Param(
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "LocalSave")]
+        [Parameter(Position=0, Mandatory=$true, ParameterSetName = "MemoryStream")]
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        [Parameter(Mandatory=$true, ParameterSetName = "LocalSave")]
+        $Path,
+        [Parameter(Mandatory=$false, ParameterSetName = "LocalSave")]
+        [Parameter(Mandatory=$false, ParameterSetName = "MemoryStream")]
+        [ValidateSet('Bmp','Gif','Jpeg','Tiff','Png')]
+        $Format='Png',
+        [Parameter(Mandatory=$true,ParameterSetName = "MemoryStream")]
+        [switch]$AsMemoryStream
+    )
+
+    $screenshot = $Driver.GetScreenshot()
+    if ($PSCmdlet.ParameterSetName -eq "LocalSave"){
+        $screenshot.SaveAsFile($Path,[OpenQA.Selenium.ScreenshotImageFormat]::$Format)
+    }
+
+    if ($PSCmdlet.ParameterSetName -eq "MemoryStream"){
+        $screenshotStream = [System.IO.MemoryStream]::new($screenshot.AsByteArray)
+        if($Format -ne 'Png'){
+            $screenshotBitmap = [System.Drawing.Bitmap]::new($screenshotStream)
+            $formattedStream = [System.IO.MemoryStream]::new()
+            $screenshotBitmap.Save($formattedStream,[System.Drawing.Imaging.ImageFormat]::$Format)
+            $screenshotStream = $formattedStream
+        }
+        $screenshotStream.Position = 0
+        return $screenshotStream
+    }
+}
