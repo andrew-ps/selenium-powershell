@@ -636,7 +636,7 @@ function Invoke-SEWait {
         [int]$Seconds = 5
     )
     Process {
-        $wait = [OpenQA.Selenium.Support.UI.WebDriverWait]::new($Driver,$Seconds)
+        $wait = [OpenQA.Selenium.Support.UI.WebDriverWait]::new($Driver,[timespan]::FromSeconds($Seconds))
 
         if ($PSCmdlet.ParameterSetName -eq "ByName") {
             $wait.Until([OpenQA.Selenium.Support.UI.ExpectedConditions]::ElementExists([OpenQA.Selenium.By]::Name($Name)))
