@@ -6,7 +6,7 @@
 ## Example Script
 This will open up reddit.com in Chrome, login, and open the rising posts tab.
 ```PowerShell
-Import-Module .\Documents\Source\selenium-powershell\Selenium.psm1 -Force
+Import-Module .\Documents\Source\selenium-powershell\Selenium.psd1 -Force
 # This is how you would launch Chrome with special switches
 $driverOptions = New-Object OpenQA.Selenium.Chrome.ChromeOptions
 
@@ -42,6 +42,20 @@ Get-SEElementAttribute -Element $mail -Attribute 'class'
 $risingPosts = Find-SEElement -Driver $driver -LinkText 'rising'
 Invoke-SEClick -Element $risingPosts
 
+# Take Screenshot of rising posts and send it as an email attachment
+$screenshot = Get-SEScreenshot -Driver $driver -Format Bmp -AsMemoryStream
+$attachment = [System.Net.Mail.Attachment]::new($screenshot,'risingposts.bmp')
+$message = [System.Net.Mail.MailMessage]::new('example@myorg.com','example@myorg.com')
+$message.Attachments.Add($attachment)
+$smtp = [System.Net.Mail.SmtpClient]::new()
+$smtp.Host = 'smtp.office365.com'
+$username = 'example@myorg.com'
+$password = 'Password'
+$smtp.Credentials = [System.Net.NetworkCredential]::new($username,$password)
+$smtp.Port = 587
+$smtp.EnableSsl = $true
+$smtp.Send($message)
+
 # Do a reddit search
 Find-SEElement -Driver $Driver -Name 'q' | Send-SEKeys -Keys 'Test Search' -SubmitForm
 ```
@@ -54,10 +68,10 @@ Find-SEElement -Driver $Driver -Name 'q' | Send-SEKeys -Keys 'Test Search' -Subm
 - Gecko Driver : 0.19.1
 
 ## Notes
-There is a cmdlet for the Internet Explorer driver but it has not been tested due to all the prerequisites required before using. The prerequisites can be found [here](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver#required-configuration) and the driver can be found on the same page as well.
+There is a function for the Internet Explorer driver but it has not been tested due to all the prerequisites required before using. The prerequisites can be found [here](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver#required-configuration) and the driver can be found on the same page as well.
 
 # Using Selenium Without this Module
-Incase you are looking to do things not available in this module or just want to see how to use Selenium without this module here is the same exact sample as above without this module's cmdlets.
+Incase you are looking to do things not available in this module or just want to see how to use Selenium without this module here is the same exact sample as above without this module's functions.
 ```PowerShell
 # Add the Selenium Dlls
 Add-Type -Path "C:\mydir\WebDriver.dll"
@@ -101,6 +115,26 @@ $mail.GetAttribute('class')
 # Display rising reddit posts
 $risingPosts = $driver.FindElementByLinkText('rising')
 $risingPosts.Click()
+
+# Take Screenshot of rising posts and send it as an email attachment
+$screenshot = $driver.GetScreenshot() # The default screenshot format is PNG
+$screenshotStream = [System.IO.MemoryStream]::new($screenshot.AsByteArray) # Save screenshot in memorystream variable
+$screenshotBitmap = [System.Drawing.Bitmap]::new($screenshotStream) # Create new bitmap of screenshot
+$formattedStream = [System.IO.MemoryStream]::new() # Create new memorystream to save formatted screenshot to
+$screenshotBitmap.Save($formattedStream,[System.Drawing.Imaging.ImageFormat]::Bmp) # Save image to memorystream in Bmp format
+$screenshotStream = $formattedStream
+$screenshotStream.Position = 0 # Set stream position to zero otherwise attachment will be invalid
+$attachment = [System.Net.Mail.Attachment]::new($screenshotStream,'risingposts.bmp')
+$message = [System.Net.Mail.MailMessage]::new('example@myorg.com','example@myorg.com')
+$message.Attachments.Add($attachment)
+$smtp = [System.Net.Mail.SmtpClient]::new()
+$smtp.Host = 'smtp.office365.com'
+$username = 'example@myorg.com'
+$password = 'Password'
+$smtp.Credentials = [System.Net.NetworkCredential]::new($username,$password)
+$smtp.Port = 587
+$smtp.EnableSsl = $true
+$smtp.Send($message)
 
 # Do a reddit search
 $search = $driver.FindElementByName('q')

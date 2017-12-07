@@ -1,0 +1,11 @@
+PSTOPIC
+    about_Selenium-Powershell
+
+SHORT DESCRIPTION
+    Selenium-Powershell is a module designed to make working with Selenium WebDriver easier.
+
+LONG DESCRIPTION
+    Selenium-Powershell is for interacting with Selenium WebDriver and automating website tests and tasks in the traditional PowerShell Verb-Noun format allowing easy integration with PowerShell scripts.
+
+    You can find Selenium documentation here:
+        http://http://www.seleniumhq.org/docs/
