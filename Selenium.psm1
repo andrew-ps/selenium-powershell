@@ -138,7 +138,9 @@ function Start-SEInternetExplorer {
   .Notes
 #>
 function Stop-SEDriver {
-    param($Driver)
+    param(
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver
+    )
 
     $Driver.Dispose()
 }
@@ -193,13 +195,13 @@ function Enter-SEUrl {
   Selenium Element Object.
 
  .Parameter Name
-  Specify an element by name. This is case sensative.
+  Specify an element by name. This is case sensitive.
 
  .Parameter Id
-  Specify an element by id. This is case sensative.
+  Specify an element by id. This is case sensitive.
 
  .Parameter ClassName
-  Specify an element by class name. This is case sensative.
+  Specify an element by class name. This is case sensitive.
 
  .Parameter LinkText
   Specify an element by link text.
@@ -211,7 +213,7 @@ function Enter-SEUrl {
   Specify an element by partial link text.
 
  .Parameter CssSelector
-  Specify an element by css selector. This is case sensative.
+  Specify an element by css selector. This is case sensitive.
 
  .Parameter XPath
   Specify an element by xpath.
@@ -460,19 +462,27 @@ function Send-SEKeys {
 }
 
 function Get-SECookie {
-    param($Driver)
+    param(
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver
+    )
 
     $Driver.Manage().Cookies.AllCookies.GetEnumerator()
 }
 
 function Remove-SECookie {
-    param($Driver)
+    param(
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver
+    )
 
     $Driver.Manage().Cookies.DeleteAllCookies()
 }
 
 function Set-SECookie {
-    param($Driver, $name, $value)
+    param(
+        [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
+        $name,
+        $value
+    )
 
     $cookie = New-Object -TypeName OpenQA.Selenium.Cookie -ArgumentList $Name,$value
 
@@ -525,11 +535,11 @@ function Get-SEElementAttribute {
 
  .Parameter Value
   Specify the Value you want to set the Attribute to.
-  Note, To unhide an element specify $null like such :
+  Note, To show a hidden element specify $null like such :
   Set-SEElementAttribute -Element $element -Attribute 'hidden' -Value $null
 
  .Example
-  # Unhide an element and change the border style
+  # Show a hidden element and change the border style
   Set-SEElementAttribute -Element $element -Attribute 'hidden' -Value $null
   Set-SEElementAttribute -Element $element -Attribute 'style.border' -Value '1px solid blue'
 
@@ -564,13 +574,13 @@ function Set-SEElementAttribute{
   Selenium WebDriver Object.
 
  .Parameter Name
-  Specify an element by name. This is case sensative.
+  Specify an element by name. This is case sensitive.
 
  .Parameter Id
-  Specify an element by id. This is case sensative.
+  Specify an element by id. This is case sensitive.
 
  .Parameter ClassName
-  Specify an element by class name. This is case sensative.
+  Specify an element by class name. This is case sensitive.
 
  .Parameter LinkText
   Specify an element by link text.
@@ -582,7 +592,7 @@ function Set-SEElementAttribute{
   Specify an element by partial link text.
 
  .Parameter CssSelector
-  Specify an element by css selector. This is case sensative.
+  Specify an element by css selector. This is case sensitive.
 
  .Parameter XPath
   Specify an element by xpath.
