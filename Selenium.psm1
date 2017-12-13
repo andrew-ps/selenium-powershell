@@ -701,7 +701,7 @@ function Find-SEInputField{
     Param(
         [Parameter(Position=0, Mandatory=$true)]
         [OpenQA.Selenium.Remote.RemoteWebDriver]$Driver,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]$Filter,
         [switch]$IncludeHidden
     )
