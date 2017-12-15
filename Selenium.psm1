@@ -17,16 +17,19 @@
   Specify Chrome Driver Options. List of options available here :
   https://peter.sh/experiments/chromium-command-line-switches/
 
+ .Parameter LeaveBrowserRunning
+  If you use this switch Chrome will stay open when you exit PowerShell.
+  You can still use Stop-SEDriver or $driver.Dispose() to close the driver
+  if desired.
+
  .Example
   # Create new driver with Chrome Options.
   $driverOptions = New-Object OpenQA.Selenium.Chrome.ChromeOptions
   # Launches Driver in Full Screen Kiosk Mode, and disables 'Chrome is being controlled by automated test software'
   $driverOptions.AddArguments("start-fullscreen", "kiosk", "disable-infobars")
-  # This should keep the browser running after the driver closes but does not seem to be working at this time
-  $driverOptions.LeaveBrowserRunning = $true
   # This would disable the prompt to save credentials on login forms
   $driverOptions.AddUserProfilePreference("credentials_enable_service", $false)
-  $driver = Start-SEChrome -Url 'http://google.com' -Options $driverOptions
+  $driver = Start-SEChrome -Url 'http://google.com' -Options $driverOptions -LeaveBrowserRunning
 
   .Notes
 #>
@@ -35,13 +38,32 @@ function Start-SEChrome {
         [Parameter(Mandatory=$false)]
         $Url,
         [Parameter(Mandatory=$false)]
-        [OpenQA.Selenium.Chrome.ChromeOptions]$Options
+        [OpenQA.Selenium.Chrome.ChromeOptions]$Options,
+        [Parameter(Mandatory=$false)]
+        [switch]$LeaveBrowserRunning
     )
     if($options -ne $null){
-        $driver = New-Object OpenQA.Selenium.Chrome.ChromeDriver($Options)
+        if($LeaveBrowserRunning){
+            $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService()
+            $service.HideCommandPromptWindow = $true
+            $Options.LeaveBrowserRunning = $true
+            $driver = New-Object OpenQA.Selenium.Chrome.ChromeDriver($service, $Options)
+        }
+        else{
+            $driver = New-Object OpenQA.Selenium.Chrome.ChromeDriver($Options)
+        }
     }
     else{
-        $driver = New-Object -TypeName "OpenQA.Selenium.Chrome.ChromeDriver"
+        if($LeaveBrowserRunning){
+            $service = [OpenQA.Selenium.Chrome.ChromeDriverService]::CreateDefaultService()
+            $service.HideCommandPromptWindow = $true
+            $options = New-Object OpenQA.Selenium.Chrome.ChromeOptions
+            $options.LeaveBrowserRunning = $true
+            $driver = New-Object OpenQA.Selenium.Chrome.ChromeDriver($service, $Options)
+        }
+        else{
+            $driver = New-Object -TypeName "OpenQA.Selenium.Chrome.ChromeDriver"
+        }
     }
     if($Url){
         $driver.Navigate().GoToUrl($Url)

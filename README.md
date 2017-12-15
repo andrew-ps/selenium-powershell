@@ -13,14 +13,11 @@ $driverOptions = New-Object OpenQA.Selenium.Chrome.ChromeOptions
 # List of switches https://peter.sh/experiments/chromium-command-line-switches/
 $driverOptions.AddArguments("disable-infobars")
 
-# This should keep the browser running after the driver closes but does not seem to work from console
-$driverOptions.LeaveBrowserRunning = $true
-
 # This would disable the prompt to save credentials on logins
 $driverOptions.AddUserProfilePreference("credentials_enable_service", $false)
 
 # Create driver and navigate to Reddit
-$driver = Start-SEChrome -Url 'http://reddit.com' -Options $driverOptions
+$driver = Start-SEChrome -Url 'http://reddit.com' -Options $driverOptions -LeaveBrowserRunning
 
 # Login to Reddit
 $usernameField = Find-SEElement -Driver $driver -Name 'user'
